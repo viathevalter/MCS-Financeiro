@@ -6,12 +6,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Format currency to European format (e.g., 1.234,56 €)
+// Format currency to European format (e.g., 1.234,56 €)
 export const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',
     currency: 'EUR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+  }).format(value);
+};
+
+export const formatCompactCurrency = (value: number) => {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    notation: 'compact',
+    maximumFractionDigits: 1,
   }).format(value);
 };
 

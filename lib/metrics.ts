@@ -95,11 +95,15 @@ export const calculateMetrics = (data: EnrichedTitulo[]): DashboardMetrics => {
     }, { value: 0, count: 0 });
 
     // 5. % Vencido / Total
-    const totalOpenBalance = data.reduce((acc, item) => {
-        if (item.Status !== 'Pago') return acc + item.Saldo_a_pagar;
+    const totalOpenStats = data.reduce((acc, item) => {
+        // To match "Saldo a Pagar" from Titles page, we sum EVERY item's balance.
+        // Even if Status is 'Pago', if it has a balance, it counts towards the total debt in the system.
+        acc.value += item.Saldo_a_pagar;
+        acc.count += 1;
         return acc;
-    }, 0);
+    }, { value: 0, count: 0 });
 
+    const totalOpenBalance = totalOpenStats.value;
     const percentualVencido = totalOpenBalance > 0 ? (saldoVencidoStats.value / totalOpenBalance) * 100 : 0;
 
     // 6. Clientes em atraso
@@ -125,7 +129,9 @@ export const calculateMetrics = (data: EnrichedTitulo[]): DashboardMetrics => {
         countAVencer30d: aVencer30dStats.count,
         percentualVencido,
         clientesAtraso: clientesAtrasoSet.size,
-        countClientesAtrasoTitulos
+        countClientesAtrasoTitulos,
+        totalOpenBalance,
+        countTotalOpen: totalOpenStats.count
     };
 };
 

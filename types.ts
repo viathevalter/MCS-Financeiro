@@ -57,6 +57,8 @@ export interface DashboardMetrics {
   percentualVencido: number;
   clientesAtraso: number;
   countClientesAtrasoTitulos: number;
+  totalOpenBalance: number;
+  countTotalOpen: number;
 }
 
 export interface FilterState {

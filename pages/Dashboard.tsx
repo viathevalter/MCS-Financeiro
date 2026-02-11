@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { MultiSelect } from '../components/MultiSelect';
 import { useData } from '../context/DataContext';
 import { calculateMetrics, getAgingData, getTreemapData } from '../lib/metrics';
-import { formatCurrency, formatDate } from '../lib/utils';
+import { formatCurrency, formatDate, formatCompactCurrency } from '../lib/utils';
 import {
     BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     LineChart, Line, Treemap
@@ -9,32 +10,42 @@ import {
 import { ArrowUpRight, ArrowDownRight, AlertCircle, Clock, Users, CheckCircle2, Layers, Filter } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const KPICard = ({ title, value, count, subtext, icon: Icon, color, isCurrency = true }: any) => (
-    <div className="bg-brand-surface p-5 rounded-2xl border border-gray-100 shadow-sm relative hover:shadow-md transition-shadow">
-        <div className="flex justify-between items-start mb-2">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{title}</p>
-            <div className={`p-1.5 rounded-lg ${color} bg-opacity-10 absolute top-3 right-3`}>
-                <Icon size={18} className={color.replace('bg-', 'text-')} />
+const KPICard = ({ title, value, count, subtext, icon: Icon, color, isCurrency = true }: any) => {
+    const displayValue = isCurrency && typeof value === 'number'
+        ? (value > 999999 ? formatCompactCurrency(value) : formatCurrency(value))
+        : value;
+
+    const titleValue = isCurrency && typeof value === 'number'
+        ? formatCurrency(value)
+        : value;
+
+    return (
+        <div className="bg-brand-surface p-5 rounded-2xl border border-gray-100 shadow-sm relative hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-2">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{title}</p>
+                <div className={`p-1.5 rounded-lg ${color} bg-opacity-10 absolute top-3 right-3`}>
+                    <Icon size={18} className={color.replace('bg-', 'text-')} />
+                </div>
             </div>
+
+            <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-2 truncate pr-2" title={titleValue}>
+                {displayValue}
+            </h3>
+
+            {(count !== undefined || subtext) && (
+                <div className="flex flex-col gap-1">
+                    {count !== undefined && (
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Qtd</span>
+                            <span className="text-xs font-semibold text-gray-700">{count}</span>
+                        </div>
+                    )}
+                    {subtext && <p className="text-[10px] text-gray-400">{subtext}</p>}
+                </div>
+            )}
         </div>
-
-        <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-2 truncate pr-2" title={isCurrency ? formatCurrency(value) : value}>
-            {isCurrency ? formatCurrency(value) : value}
-        </h3>
-
-        {(count !== undefined || subtext) && (
-            <div className="flex flex-col gap-1">
-                {count !== undefined && (
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Qtd</span>
-                        <span className="text-xs font-semibold text-gray-700">{count}</span>
-                    </div>
-                )}
-                {subtext && <p className="text-[10px] text-gray-400">{subtext}</p>}
-            </div>
-        )}
-    </div>
-);
+    );
+};
 
 const CustomTreemapContent = (props: any) => {
     const { x, y, width, height, name, value, payload, fill } = props;
@@ -105,31 +116,141 @@ const CustomTreemapTooltip = ({ active, payload }: any) => {
     return null;
 };
 
+
+const CustomReceiptTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        const items = data.items || [];
+        // Top 5 items
+        const topItems = items.slice(0, 5);
+        const remaining = items.length - 5;
+
+        return (
+            <div className="bg-white p-3 border border-gray-200 shadow-xl rounded-lg text-sm z-50 min-w-[200px]">
+                <p className="font-bold text-gray-900 mb-2 border-b pb-1 flex justify-between">
+                    <span>{data.date}</span>
+                    <span className="text-brand-action">{formatCurrency(data.value)}</span>
+                </p>
+                <div className="space-y-1.5">
+                    {topItems.map((item: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center text-xs">
+                            <span className="text-gray-600 truncate max-w-[120px]" title={item.client}>
+                                {item.client}
+                            </span>
+                            <span className="font-medium text-gray-900">{formatCurrency(item.value)}</span>
+                        </div>
+                    ))}
+                    {remaining > 0 && (
+                        <p className="text-xs text-gray-400 italic text-center mt-1">
+                            + {remaining} outros
+                        </p>
+                    )}
+                    {items.length === 0 && <p className="text-xs text-gray-400">Sem detalhes disponíveis</p>}
+                </div>
+                <p className="text-[10px] text-brand-action mt-2 text-center font-medium opacity-80">
+                    Clique para filtrar este dia
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 export const Dashboard = () => {
-    const { filteredData } = useData();
+    const { filteredData, setFilters } = useData();
     const navigate = useNavigate();
     const metrics = useMemo(() => calculateMetrics(filteredData), [filteredData]);
     const agingData = useMemo(() => getAgingData(filteredData), [filteredData]);
 
     const [treemapDimension, setTreemapDimension] = useState<'Empresa' | 'Cliente' | 'Obra' | 'Banco'>('Empresa');
+    const [selectedRiskStatuses, setSelectedRiskStatuses] = useState<string[]>([]);
 
-    const treemapData = useMemo(() => {
-        const data = getTreemapData(filteredData, treemapDimension);
-        if (!data) return [];
-        return data;
-    }, [filteredData, treemapDimension]);
-
-    const receiptData = useMemo(() => {
-        const buckets: any = {};
-        filteredData.forEach(d => {
-            if (d.dt_recebimento && d.Status === 'Pago') {
-                const key = formatDate(d.dt_recebimento);
-                buckets[key] = (buckets[key] || 0) + (d.Valor_parcial || d.Valot_total);
+    // ... riskStatuses logic ...
+    const riskStatuses = useMemo(() => {
+        const statusSet = new Set<string>();
+        filteredData.forEach(item => {
+            if (item.Status && item.Status !== 'Pago') {
+                statusSet.add(item.Status);
             }
         });
-        return Object.keys(buckets).slice(-7).map(k => ({ date: k, value: buckets[k] }));
+        return Array.from(statusSet).sort().map(s => ({ value: s, label: s }));
     }, [filteredData]);
 
+    React.useEffect(() => {
+        if (riskStatuses.length > 0 && selectedRiskStatuses.length === 0) {
+            setSelectedRiskStatuses(riskStatuses.map(r => r.value));
+        }
+    }, [riskStatuses.length]);
+
+    const treemapData = useMemo(() => {
+        let dataToProcess = filteredData;
+        if (selectedRiskStatuses.length > 0) {
+            dataToProcess = filteredData.filter(item => selectedRiskStatuses.includes(item.Status));
+        } else if (riskStatuses.length > 0) {
+            if (selectedRiskStatuses.length === 0) dataToProcess = [];
+        }
+        const data = getTreemapData(dataToProcess, treemapDimension);
+        if (!data) return [];
+        return data;
+    }, [filteredData, treemapDimension, selectedRiskStatuses, riskStatuses.length]);
+
+    const receiptData = useMemo(() => {
+        const buckets: Record<string, { value: number, items: any[], rawDate: Date }> = {};
+
+        filteredData.forEach(d => {
+            if (d.dt_recebimento && d.Status === 'Pago') {
+                const dateKey = d.dt_recebimento.toISOString().split('T')[0];
+                if (!buckets[dateKey]) {
+                    buckets[dateKey] = { value: 0, items: [], rawDate: d.dt_recebimento };
+                }
+                const val = d.Valor_parcial || d.Valot_total;
+                buckets[dateKey].value += val;
+                buckets[dateKey].items.push({
+                    client: d.clienteInfo?.NombreComercial || d.Cliente,
+                    value: val
+                });
+            }
+        });
+
+        // Sort items within buckets by value
+        Object.values(buckets).forEach(bucket => {
+            bucket.items.sort((a, b) => b.value - a.value);
+        });
+
+        return Object.entries(buckets)
+            .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+            .slice(-7)
+            .map(([dateStr, data]) => {
+                const [year, month, day] = dateStr.split('-').map(Number);
+                const dateObj = new Date(year, month - 1, day);
+                return {
+                    date: formatDate(dateObj),
+                    rawDate: data.rawDate,
+                    value: data.value,
+                    items: data.items
+                };
+            });
+    }, [filteredData]);
+
+    const handleReceiptClick = (data: any) => {
+        if (data && data.activePayload && data.activePayload.length > 0) {
+            const payload = data.activePayload[0].payload;
+            if (payload.rawDate) {
+                // Set filter to this specific day
+                const start = new Date(payload.rawDate);
+                start.setHours(0, 0, 0, 0);
+                const end = new Date(payload.rawDate);
+                end.setHours(23, 59, 59, 999);
+
+                setFilters(prev => ({
+                    ...prev,
+                    periodo: [start, end]
+                }));
+            }
+        }
+    };
+
+    // ... topPendencias ...
     const topPendencias = useMemo(() => {
         return filteredData
             .filter(i => i.Status !== 'Pago')
@@ -137,22 +258,26 @@ export const Dashboard = () => {
             .slice(0, 5);
     }, [filteredData]);
 
-    const handleTreemapClick = (data: any) => {
-        if (!data || !data.name) return;
-
-        const param = treemapDimension === 'Cliente' ? 'cliente' : 'search';
-        navigate(`/titulos?${param}=${encodeURIComponent(data.name)}`);
-    };
+    const handleTreemapClick = (data: any) => { /* ... */ };
 
     return (
         <div className="h-full overflow-y-auto p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {/* KPI Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                {/* ... Keep KPI Cards as they are ... */}
                 <KPICard
                     title="Recebido (Filtro)"
                     value={metrics.recebidoPeriodo}
                     count={metrics.countRecebidoPeriodo}
                     icon={CheckCircle2}
                     color="bg-emerald-500 text-emerald-500"
+                />
+                <KPICard
+                    title="Saldo Total"
+                    value={metrics.totalOpenBalance}
+                    count={metrics.countTotalOpen}
+                    icon={Layers}
+                    color="bg-indigo-500 text-indigo-500"
                 />
                 <KPICard
                     title="Vencido (Saldo)"
@@ -213,12 +338,12 @@ export const Dashboard = () => {
                     <h3 className="font-bold text-gray-800 mb-4">Recebimentos (Últimos 7 dias)</h3>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={receiptData}>
+                            <LineChart data={receiptData} onClick={handleReceiptClick} style={{ cursor: 'pointer' }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis dataKey="date" style={{ fontSize: '12px' }} />
                                 <YAxis style={{ fontSize: '12px' }} />
-                                <Tooltip formatter={(val: number) => formatCurrency(val)} />
-                                <Line type="monotone" dataKey="value" stroke="#32CD32" strokeWidth={3} dot={{ r: 4 }} />
+                                <Tooltip content={<CustomReceiptTooltip />} />
+                                <Line type="monotone" dataKey="value" stroke="#32CD32" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
@@ -237,19 +362,34 @@ export const Dashboard = () => {
                         </p>
                     </div>
 
-                    <div className="flex bg-gray-100 p-1 rounded-lg">
-                        {['Empresa', 'Cliente'].map((dim) => (
-                            <button
-                                key={dim}
-                                onClick={() => setTreemapDimension(dim as any)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${treemapDimension === dim
-                                    ? 'bg-white text-brand-dark shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-800'
-                                    }`}
-                            >
-                                {dim}
-                            </button>
-                        ))}
+                    <div className="flex flex-col sm:flex-row gap-3 items-start">
+                        <div className="w-full sm:w-48">
+                            <MultiSelect
+                                label="Filtrar Status"
+                                options={riskStatuses}
+                                selected={selectedRiskStatuses}
+                                onChange={setSelectedRiskStatuses}
+                                placeholder="Selecione status..."
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1">Agrupar por</label>
+                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                                {['Empresa', 'Cliente'].map((dim) => (
+                                    <button
+                                        key={dim}
+                                        onClick={() => setTreemapDimension(dim as any)}
+                                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${treemapDimension === dim
+                                            ? 'bg-white text-brand-dark shadow-sm'
+                                            : 'text-gray-500 hover:text-gray-800'
+                                            }`}
+                                    >
+                                        {dim}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
