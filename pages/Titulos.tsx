@@ -4,7 +4,7 @@ import { formatCurrency, formatDate } from '../lib/utils';
 import { Search, ChevronLeft, ChevronRight, Filter, ArrowUpDown, ArrowUp, ArrowDown, Eye, CheckSquare, Square, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
-type SortKey = 'Dt_venc' | 'Valot_total' | 'Saldo_a_pagar' | 'Cliente' | 'Empresa' | 'Status';
+type SortKey = 'Dt_venc' | 'Valot_total' | 'Saldo_a_pagar' | 'Cliente' | 'Empresa' | 'Status' | 'id';
 type SortDirection = 'asc' | 'desc';
 
 interface SortConfig {
@@ -23,7 +23,7 @@ export const Titulos = () => {
     const [searchTerm, setSearchTerm] = useState(initialSearch);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
-    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'Dt_venc', direction: 'asc' });
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'id', direction: 'desc' });
 
     // Multi-select Status Filter
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -106,6 +106,11 @@ export const Titulos = () => {
                 case 'Status':
                     aVal = a.Status;
                     bVal = b.Status;
+                    break;
+                case 'id':
+                    // Parse ID to number for correct sorting (10 > 2)
+                    aVal = parseInt(a.id, 10) || 0;
+                    bVal = parseInt(b.id, 10) || 0;
                     break;
                 default:
                     return 0;

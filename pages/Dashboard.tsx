@@ -47,12 +47,30 @@ const KPICard = ({ title, value, count, subtext, icon: Icon, color, isCurrency =
     );
 };
 
+const getContrastColor = (hexColor: string) => {
+    // Default to dark text if color is invalid
+    if (!hexColor || !hexColor.startsWith('#')) return 'text-gray-900';
+
+    // Convert hex to RGB
+    const r = parseInt(hexColor.substr(1, 2), 16);
+    const g = parseInt(hexColor.substr(3, 2), 16);
+    const b = parseInt(hexColor.substr(5, 2), 16);
+
+    // Calculate relative luminance (YIQ formula)
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+    // Threshold of 128 is standard, but we can adjust if needed.
+    // > 128 means light background -> dark text
+    return (yiq >= 128) ? 'text-gray-900' : 'text-white';
+};
+
 const CustomTreemapContent = (props: any) => {
     const { x, y, width, height, name, value, payload, fill } = props;
     const color = fill || payload?.fill || '#cbd5e1';
 
     const showText = width > 60 && height > 40;
     const showValue = width > 80 && height > 60;
+    const textColorClass = getContrastColor(color);
 
     return (
         <g>
@@ -70,11 +88,11 @@ const CustomTreemapContent = (props: any) => {
             {showText && (
                 <foreignObject x={x} y={y} width={width} height={height} style={{ pointerEvents: 'none' }}>
                     <div className="w-full h-full flex flex-col items-center justify-center p-1 text-center overflow-hidden">
-                        <span className="text-white font-bold text-xs leading-tight line-clamp-2 drop-shadow-md">
+                        <span className={`${textColorClass} font-bold text-xs leading-tight line-clamp-2 drop-shadow-sm`}>
                             {name}
                         </span>
                         {showValue && (
-                            <span className="text-white text-[10px] mt-1 opacity-95 font-medium drop-shadow-md">
+                            <span className={`${textColorClass} text-[10px] mt-1 opacity-95 font-medium drop-shadow-sm`}>
                                 {formatCurrency(value)}
                             </span>
                         )}
