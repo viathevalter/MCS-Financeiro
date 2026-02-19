@@ -163,10 +163,10 @@ export const getAgingData = (data: EnrichedTitulo[]) => {
     });
 
     return [
-        { name: '1-30 Dias', value: buckets['1-30'], fill: '#22c55e' },
-        { name: '31-60 Dias', value: buckets['31-60'], fill: '#eab308' },
-        { name: '61-90 Dias', value: buckets['61-90'], fill: '#f97316' },
-        { name: '90+ Dias', value: buckets['90+'], fill: '#ef4444' },
+        { name: '1-30 Dias', value: buckets['1-30'], fill: '#fca5a5' }, // Red-300
+        { name: '31-60 Dias', value: buckets['31-60'], fill: '#f87171' }, // Red-400
+        { name: '61-90 Dias', value: buckets['61-90'], fill: '#ef4444' }, // Red-500
+        { name: '90+ Dias', value: buckets['90+'], fill: '#b91c1c' }, // Red-700
     ];
 };
 
