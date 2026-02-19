@@ -25,6 +25,7 @@ export interface ContasReceber {
   Valot_total: number;
   Saldo_a_pagar: number;
   Valor_parcial: number;
+  periodo_fat: string;
   Status: 'Pago' | 'Vencido' | 'A vencer' | 'Parcial' | string;
   Integral_parcial: 'Integral' | 'Parcial' | string;
   Banco: string;
@@ -67,4 +68,5 @@ export interface FilterState {
   status: string;
   banco: string;
   cliente: string;
+  periodoFat: string[];
 }

@@ -260,6 +260,7 @@ export const Titulos = () => {
                                 >
                                     <div className="flex items-center">Empresa {getSortIcon('Empresa')}</div>
                                 </th>
+                                <th className="px-6 py-4">Período Fat.</th>
                                 <th className="px-6 py-4">Doc / Obra</th>
                                 <th
                                     className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors"
@@ -297,6 +298,7 @@ export const Titulos = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-gray-500">{item.Empresa}</td>
+                                    <td className="px-6 py-4 text-gray-500 text-xs">{item.periodo_fat}</td>
                                     <td className="px-6 py-4">
                                         <div className="text-gray-900 font-medium">{item.Num_doc}</div>
                                         <div className="text-xs text-gray-400 truncate max-w-[120px]">{item.Obra}</div>

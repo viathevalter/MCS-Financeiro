@@ -1,9 +1,10 @@
 import React from 'react';
 import { Calendar, Filter, Bell } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { MultiSelect } from './MultiSelect';
 
 export const Navbar = () => {
-    const { filters, setFilters, availableEmpresas } = useData();
+    const { filters, setFilters, availableEmpresas, availablePeriodos } = useData();
 
     const handleDateChange = (type: 'start' | 'end', value: string) => {
         const dateVal = value ? new Date(value) : null;
@@ -21,6 +22,8 @@ export const Navbar = () => {
         return date.toISOString().split('T')[0];
     };
 
+    const periodoOptions = availablePeriodos.map(p => ({ value: p, label: p }));
+
     return (
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10">
             <div className="flex items-center gap-4">
@@ -30,6 +33,16 @@ export const Navbar = () => {
             </div>
 
             <div className="flex items-center gap-4 flex-1 justify-end">
+                {/* Periodo Fat Filter */}
+                <div className="w-48">
+                    <MultiSelect
+                        options={periodoOptions}
+                        selected={filters.periodoFat || []}
+                        onChange={(selected) => setFilters(prev => ({ ...prev, periodoFat: selected }))}
+                        placeholder="Período Fat."
+                    />
+                </div>
+
                 {/* Date Range Picker */}
                 <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
                     <Calendar size={14} className="text-gray-400" />

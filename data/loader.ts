@@ -76,6 +76,7 @@ export async function fetchContasReceber(): Promise<ContasReceber[]> {
       Cliente: row.cliente || '',
       Obra: row.obra || '',
       Num_doc: row.num_doc || '',
+      periodo_fat: row.periodo_fat || '',
       Data_emissao: parseDate(row.data_emissao),
       Dt_venc: parseDate(row.dt_venc),
       dt_recebimento: parseDate(row.dt_recebimento),

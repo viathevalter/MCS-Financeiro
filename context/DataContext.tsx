@@ -10,6 +10,7 @@ interface DataContextType {
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   availableEmpresas: string[];
   availableBancos: string[];
+  availablePeriodos: string[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -23,7 +24,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     periodo: [null, null],
     status: 'Todos',
     banco: '',
-    cliente: ''
+    cliente: '',
+    periodoFat: []
   });
 
   useEffect(() => {
@@ -50,9 +52,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Derived lists for Dropdowns
   const availableEmpresas = Array.from(new Set(rawData.map(i => i.Empresa).filter(Boolean))).sort();
   const availableBancos = Array.from(new Set(rawData.map(i => i.Banco).filter(Boolean))).sort();
+  const availablePeriodos = Array.from(new Set(rawData.map(i => i.periodo_fat).filter(Boolean))).sort();
 
   return (
-    <DataContext.Provider value={{ rawData, filteredData, filters, setFilters, availableEmpresas, availableBancos }}>
+    <DataContext.Provider value={{ rawData, filteredData, filters, setFilters, availableEmpresas, availableBancos, availablePeriodos }}>
       {children}
     </DataContext.Provider>
   );

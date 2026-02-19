@@ -13,6 +13,11 @@ export const filterData = (data: EnrichedTitulo[], filters: FilterState): Enrich
             return false;
         }
 
+        // Periodo Fat Filter
+        if (filters.periodoFat && filters.periodoFat.length > 0 && !filters.periodoFat.includes(item.periodo_fat)) {
+            return false;
+        }
+
         // Period Filter
         if (filters.periodo[0] && filters.periodo[1] && item.Dt_venc) {
             if (!isDateInRange(item.Dt_venc, filters.periodo[0], filters.periodo[1])) {
