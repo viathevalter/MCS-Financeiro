@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { formatCurrency, formatDate } from '../lib/utils';
+import { formatCurrency, formatDate, formatCompactCurrency } from '../lib/utils';
 import { Search, ChevronLeft, ChevronRight, Filter, ArrowUpDown, ArrowUp, ArrowDown, Eye, CheckSquare, Square, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -68,11 +68,30 @@ export const Titulos = () => {
 
     // KPIs Calculation
     const kpis = useMemo(() => {
-        return localFilteredData.reduce((acc, item) => ({
-            count: acc.count + 1,
-            totalValue: acc.totalValue + (item.Valot_total || 0),
-            totalBalance: acc.totalBalance + (item.Saldo_a_pagar || 0)
-        }), { count: 0, totalValue: 0, totalBalance: 0 });
+        return localFilteredData.reduce((acc, item) => {
+            acc.count += 1;
+            acc.totalValue += (item.Valot_total || 0);
+
+            // Sum by status
+            switch (item.Status) {
+                case 'Pago':
+                    acc.pago += (item.Valot_total || 0);
+                    break;
+                case 'Vencido':
+                    acc.vencido += (item.Valot_total || 0);
+                    break;
+                case 'A vencer':
+                    acc.aVencer += (item.Valot_total || 0);
+                    break;
+                case 'Parcial':
+                    acc.parcial += (item.Valot_total || 0);
+                    break;
+                case 'Judicial':
+                    acc.judicial += (item.Valot_total || 0);
+                    break;
+            }
+            return acc;
+        }, { count: 0, totalValue: 0, pago: 0, vencido: 0, aVencer: 0, parcial: 0, judicial: 0 });
     }, [localFilteredData]);
 
     // 2. Ordenação
@@ -166,24 +185,35 @@ export const Titulos = () => {
                 </div>
 
                 {/* KPIs Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-gray-500 font-medium uppercase">Quantidade</p>
-                            <p className="text-xl font-bold text-gray-900">{kpis.count}</p>
-                        </div>
+                {/* KPIs Row */}
+                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
+                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">Quantidade</p>
+                        <p className="text-lg font-bold text-gray-900">{kpis.count}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-gray-500 font-medium uppercase">Valor Total</p>
-                            <p className="text-xl font-bold text-gray-900">{formatCurrency(kpis.totalValue)}</p>
-                        </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">Valor Total</p>
+                        <p className="text-lg font-bold text-gray-900 truncate" title={formatCurrency(kpis.totalValue)}>{formatCompactCurrency(kpis.totalValue)}</p>
                     </div>
-                    <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-                        <div>
-                            <p className="text-xs text-gray-500 font-medium uppercase">Saldo a Pagar</p>
-                            <p className="text-xl font-bold text-brand-action">{formatCurrency(kpis.totalBalance)}</p>
-                        </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center border-l-4 border-l-emerald-500">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">Pago</p>
+                        <p className="text-lg font-bold text-emerald-700 truncate" title={formatCurrency(kpis.pago)}>{formatCompactCurrency(kpis.pago)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center border-l-4 border-l-red-500">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">Vencido</p>
+                        <p className="text-lg font-bold text-red-700 truncate" title={formatCurrency(kpis.vencido)}>{formatCompactCurrency(kpis.vencido)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center border-l-4 border-l-blue-500">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">A Vencer</p>
+                        <p className="text-lg font-bold text-blue-700 truncate" title={formatCurrency(kpis.aVencer)}>{formatCompactCurrency(kpis.aVencer)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center border-l-4 border-l-orange-500">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">Parcial</p>
+                        <p className="text-lg font-bold text-orange-700 truncate" title={formatCurrency(kpis.parcial)}>{formatCompactCurrency(kpis.parcial)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center border-l-4 border-l-purple-500">
+                        <p className="text-[10px] text-gray-500 font-medium uppercase truncate">Judicial</p>
+                        <p className="text-lg font-bold text-purple-700 truncate" title={formatCurrency(kpis.judicial)}>{formatCompactCurrency(kpis.judicial)}</p>
                     </div>
                 </div>
 
