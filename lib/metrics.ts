@@ -27,10 +27,7 @@ export const filterData = (data: EnrichedTitulo[], filters: FilterState): Enrich
 
         // Status Filter
         if (filters.status && filters.status !== 'Todos') {
-            // Handle "Aberto" logic
-            if (filters.status === 'Aberto') {
-                if (item.Status === 'Pago') return false;
-            } else if (item.Status !== filters.status) {
+            if (item.Status !== filters.status) {
                 return false;
             }
         }

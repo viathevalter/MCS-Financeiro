@@ -12,7 +12,7 @@ interface SortConfig {
     direction: SortDirection;
 }
 
-const ALL_STATUSES = ['Aberto', 'Pago', 'Vencido', 'A vencer', 'Parcial', 'Judicial'];
+const ALL_STATUSES = ['Pago', 'Vencido', 'A vencer', 'Parcial', 'Judicial'];
 
 export const Titulos = () => {
     const { filteredData } = useData();
