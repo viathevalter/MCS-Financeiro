@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Age: 635
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline
+Content-Length: 2018
+Content-Type: text/html; charset=utf-8
+Date: Wed, 08 Apr 2026 10:50:16 GMT
+Etag: "60848f6dd524ead53df42e33e3e31d63"
+Last-Modified: Wed, 08 Apr 2026 10:39:40 GMT
+Server: Vercel
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Vercel-Cache: HIT
+X-Vercel-Id: cdg1::kvzfb-1775645416196-38bca4eadbac
+
