@@ -1,18 +1,69 @@
 import React from 'react';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { DataProvider } from './context/DataContext';
+import { Layout } from './components/Layout';
+import { Dashboard } from './pages/Dashboard';
+import { TitleDetail } from './pages/TitleDetail';
+import { Analises } from './pages/Analises';
+import { Titulos } from './pages/Titulos';
+import { Settings } from './pages/Settings';
+import { UpdatePassword } from './pages/UpdatePassword';
 
-// O restante do aplicativo foi temporariamente suspenso.
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Login } from './pages/Login';
+import { Loader2 } from 'lucide-react';
+
+// Placeholders
+const Cobranca = () => <div className="text-2xl font-bold text-gray-400 p-10 text-center">Cobrança Pro (Em breve)</div>;
+
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="animate-spin text-brand-dark" size={32} />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
 
 const App = () => {
   return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '72px', fontWeight: 'bold', color: '#111827', margin: '0' }}>404</h1>
-        <p style={{ fontSize: '24px', fontWeight: '500', color: '#374151', marginTop: '1rem', marginBottom: '0.5rem' }}>Página não encontrada</p>
-        <p style={{ color: '#6b7280', fontSize: '16px' }}>
-          O link que você acessou pode estar quebrado, ou a página pode ter sido removida.
-        </p>
-      </div>
-    </div>
+    <AuthProvider>
+      <DataProvider>
+        <HashRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/analises" element={<Analises />} />
+                      <Route path="/titulos" element={<Titulos />} />
+                      <Route path="/titulos/:id" element={<TitleDetail />} />
+                      <Route path="/cobranca" element={<Cobranca />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/update-password" element={<UpdatePassword />} />
+                    </Routes>
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </HashRouter>
+      </DataProvider>
+    </AuthProvider>
   );
 };
 
